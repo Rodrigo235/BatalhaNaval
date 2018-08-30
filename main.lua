@@ -11,46 +11,37 @@ local tabuleiro = {
 	{}
 }
 
-function tabuleiro:constroiTabuleiro()
+function tabuleiro:constroiTabuleiro(preenchimento)
+
+	local tabuleiroCriado = tabuleiro
 
 	for i = 1, 10 do
 	
 		for j = 1, 10 do
 
-			self[i][j] = 0
+			tabuleiroCriado[i][j] = preenchimento
 
 		end
 	end
 
-	return self
+	return tabuleiroCriado
 
 end
 
 local navios = {
-	navioTamanho2 = {tamanho = 2, orientacao = {"vertical", "horizontal"}},
-	navioTamanho3 = {tamanho = 3, orientacao = {"vertical", "horizontal"}},
-	navioTamanho4 = {tamanho = 4, orientacao = {"vertical", "horizontal"}},
-	navioTamanho5 = {tamanho = 5, orientacao = {"vertical", "horizontal"}}
+	Rebocador = {tamanho = 2, orientacao = {"vertical", "horizontal"}},
+	Contratorpedo = {tamanho = 3, orientacao = {"vertical", "horizontal"}},
+	Cruzador = {tamanho = 4, orientacao = {"vertical", "horizontal"}},
+	PortaAvioes = {tamanho = 5, orientacao = {"vertical", "horizontal"}}
 }
 
 local jogador1 = {
 	nome = "Player 1",
-	mapa = tabuleiro:constroiTabuleiro(),
+	mapa = tabuleiro:constroiTabuleiro(0),
+	--mapaDoAdversario = tabuleiro:constroiTabuleiro("?"),
 	pontuacao = 0,
 	naviosDoJogador = navios
 }
-
-function tabuleiro:existe(tabuleiro)
-	for i = 1, #tabuleiro do
-		for j = 1, #tabuleiro[i] do
-			if(tabuleiro[i][j] == 0) then
-				return true
-			else 
-				return false
-			end
-		end
-	end
-end
 
 function tabuleiro:toString(argTabuleiro)
 	local strTabuleiro = ""
@@ -65,10 +56,12 @@ function tabuleiro:toString(argTabuleiro)
 	return strTabuleiro
 end
 
+------------------------------posiciona o Navio no mapa--------------------------------
+
 function inserirNavio(argJogador, argLinha, argColuna, argNavio, argOrientacao)
 	local mapa = argJogador.mapa
 
-	--if (argNavio.tamanho == 0) then
+	if (argNavio.tamanho ~= 0) then
 
 		if (argNavio.orientacao[argOrientacao] == "vertical") then
 
@@ -83,33 +76,79 @@ function inserirNavio(argJogador, argLinha, argColuna, argNavio, argOrientacao)
 			end
 		end
 
-	--	argNavio.tamanho = 0
+		argNavio.tamanho = 0
 
-	--else 
-	--	print("navio ja adicionado")
-	--end
-
-	return mapa
-
-end
-
-function mostrarMapa(mapa)
-
-	if(tabuleiro:existe(mapa) ~= nil) then 
-		mapa = tabuleiro:constroiTabuleiro()
+	else 
+		return mapa, false
 	end
 
-	return tabuleiro:toString(mapa)
+	return mapa, true
+
 end
 
-jogador1.mapa = inserirNavio(jogador1, 1, 2, navios.navioTamanho4, 2)
+-------------------------------------------------------------------------------------
 
---jogador1.mapa = inserirNavio(jogador1, 2, 2, navios.navioTamanho4, 1)
-
-print (tabuleiro:toString(jogador1.mapa))
-
---jogador1.naviosDoJogador.navioTamanho4 = nil
-
-for k, v in pairs(jogador1.naviosDoJogador) do
-	print (k, v)
+function mostrarNavioSelecionado(argumento)
+	print ("--------------------------------------------")
+	print ("Navio Selecionado: "..argumento)
+	print ("--------------------------------------------")
 end
+
+-----------------------------------------JOGO------------------------------------------
+local posicaoX, posicaoY
+
+local navioEscolhido
+
+local orientacaoDoNavio
+
+repeat
+
+	print ("Mapa do Jogador: " ..jogador1.nome.."\n")
+	print (tabuleiro:toString(jogador1.mapa))
+	print ("Navios Disponiveis\n")
+
+	print ("  Navio     	|Tamanho")
+	print ("________________________")
+
+	for k, v in pairs(jogador1.naviosDoJogador) do
+		if(v.tamanho ~= 0) then
+			print (k, "|"..v.tamanho)
+		end
+	end
+------------------------------SELECIONA O NAVIO ---------------------------------
+	print("\nSelecione o tamanho do navio para inserir: TAMANHO = 2, 3, 4 e 5.\n"
+		.."0 Para sair")
+	navioEscolhido = io.read("*n")
+
+	if navioEscolhido == 0 then break end
+
+	for k, v in pairs(jogador1.naviosDoJogador) do
+
+		if(navioEscolhido == v.tamanho) then
+			navioEscolhido = k
+		end
+	end
+
+	mostrarNavioSelecionado(navioEscolhido)
+
+---------------------------------------------------------------------------------
+
+	print ("\nSelecione a posicao em X: 1 - 10")
+	posicaoX = io.read("*n")
+
+	print ("\nSelecione a posicao em Y: 1 - 10")
+	posicaoY = io.read("*n")
+
+	print ("\nSelecione a orientacao do navio: 1 = vertical, 2 = horizontal")
+	orientacaoDoNavio = io.read("*n")
+
+	jogador1.mapa, inseriuNavio = inserirNavio
+	(jogador1, posicaoX, posicaoY, navioEscolhido, 1)
+
+	if (inseriuNavio) then
+		print(tabuleiro:toString(jogador1.mapa))
+	elseif (~inseriuNavio) then
+		print("Navio ja adicionado")
+	end
+
+until (navioEscolhido == 0)
