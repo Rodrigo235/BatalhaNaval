@@ -59,30 +59,29 @@ end
 ------------------------------posiciona o Navio no mapa--------------------------------
 
 function inserirNavio(argJogador, argLinha, argColuna, argNavio, argOrientacao)
-	local mapa = argJogador.mapa
 
 	if (argNavio.tamanho ~= 0) then
 
 		if (argNavio.orientacao[argOrientacao] == "vertical") then
 
 			for i = 0, argNavio.tamanho - 1 do
-				mapa[argLinha + i][argColuna] = argNavio.tamanho
+				argJogador.mapa[argLinha + i][argColuna] = argNavio.tamanho
 			end
 
 		elseif (argNavio.orientacao[argOrientacao] == "horizontal") then
 
 			for i = 0, argNavio.tamanho - 1 do
-				mapa[argLinha][argColuna + i] = argNavio.tamanho
+				argJogador.mapa[argLinha][argColuna + i] = argNavio.tamanho
 			end
 		end
 
 		argNavio.tamanho = 0
 
 	else 
-		return mapa, false
+		return false
 	end
 
-	return mapa, true
+	return true
 
 end
 
@@ -96,10 +95,9 @@ end
 
 -----------------------------------------JOGO------------------------------------------
 local posicaoX, posicaoY
-
 local navioEscolhido
-
 local orientacaoDoNavio
+local inseriuNavio
 
 repeat
 
@@ -116,7 +114,7 @@ repeat
 		end
 	end
 ------------------------------SELECIONA O NAVIO ---------------------------------
-	print("\nSelecione o tamanho do navio para inserir: TAMANHO = 2, 3, 4 e 5.\n"
+	print("\nSelecione o tamanho do navio para inserir\n"
 		.."0 Para sair")
 	navioEscolhido = io.read("*n")
 
@@ -125,11 +123,12 @@ repeat
 	for k, v in pairs(jogador1.naviosDoJogador) do
 
 		if(navioEscolhido == v.tamanho) then
-			navioEscolhido = k
+			navioEscolhido = v
+			mostrarNavioSelecionado(k)
 		end
 	end
 
-	mostrarNavioSelecionado(navioEscolhido)
+	
 
 ---------------------------------------------------------------------------------
 
@@ -142,12 +141,10 @@ repeat
 	print ("\nSelecione a orientacao do navio: 1 = vertical, 2 = horizontal")
 	orientacaoDoNavio = io.read("*n")
 
-	jogador1.mapa, inseriuNavio = inserirNavio
-	(jogador1, posicaoX, posicaoY, navioEscolhido, 1)
+	inseriuNavio = inserirNavio	
+	(jogador1, posicaoX, posicaoY, navioEscolhido, orientacaoDoNavio)
 
 	if (inseriuNavio) then
-		print(tabuleiro:toString(jogador1.mapa))
-	elseif (~inseriuNavio) then
 		print("Navio ja adicionado")
 	end
 
