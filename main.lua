@@ -11,6 +11,8 @@ local tabuleiro = {
 	{}
 }
 
+
+
 function tabuleiro:constroiTabuleiro(preenchimento)
 
 	local tabuleiroCriado = tabuleiro
@@ -56,43 +58,77 @@ function tabuleiro:toString(argTabuleiro)
 	return strTabuleiro
 end
 
-------------------------------posiciona o Navio no mapa--------------------------------
+function podeInserir(argMapa, argLinha, argColuna, argNavio, argOrientacao)
+	if(argNavio.tamanho == 0) then 
+		print("Navio ja adicionado")
+		return false 
+	end
 
-function inserirNavio(argJogador, argLinha, argColuna, argNavio, argOrientacao)
+	if (argNavio.orientacao[argOrientacao] == "vertical") then
 
-	if (argNavio.tamanho ~= 0) then
-
-		if (argNavio.orientacao[argOrientacao] == "vertical") then
-
-			for i = 0, argNavio.tamanho - 1 do
-				argJogador.mapa[argLinha + i][argColuna] = argNavio.tamanho
-			end
-
-		elseif (argNavio.orientacao[argOrientacao] == "horizontal") then
-
-			for i = 0, argNavio.tamanho - 1 do
-				argJogador.mapa[argLinha][argColuna + i] = argNavio.tamanho
+		for i = 0, argNavio.tamanho - 1 do
+			if (argMapa[argLinha + i][argColuna] ~= 0) then
+				print("Colisao com outro navio")
+				return false
 			end
 		end
+	elseif (argNavio.orientacao[argOrientacao] == "horizontal") then
 
-		argNavio.tamanho = 0
-
-	else 
-		return false
+		for i = 0, argNavio.tamanho - 1 do
+			if(argMapa[argLinha][argColuna + i] ~= 0) then
+				print("Colisao com outro navio")
+				return false
+			end
+		end
 	end
 
 	return true
 
 end
 
--------------------------------------------------------------------------------------
+------------------------------posiciona o Navio no mapa--------------------------------
 
+function inserirNavio(argJogador, argLinha, argColuna, argNavio, argOrientacao)
+	local mapa = argJogador.mapa
+	
+	if (argNavio.orientacao[argOrientacao] == "vertical") then
+
+		for i = 0, argNavio.tamanho - 1 do
+			mapa[argLinha + i][argColuna] = argNavio.tamanho
+		end
+
+	elseif (argNavio.orientacao[argOrientacao] == "horizontal") then
+
+		for i = 0, argNavio.tamanho - 1 do
+			mapa[argLinha][argColuna + i] = argNavio.tamanho
+		end
+	end
+
+	argNavio.tamanho = 0
+
+	return mapa
+
+end
+
+function acertar(argMapaDoAdversario, argLinha, argColuna)
+	if(argMapaDoAdversario[argLinha][argColuna] ~= 0) then
+		return true
+	else 
+		retturn false
+	end
+end
+
+function atirar(argMapaDoAdversario, argLinha, argColuna)
+	argMapaDoAdversario[argLinha][argColuna] = "X"
+end
+
+
+-------------------------------------------------------------------------------------
 function mostrarNavioSelecionado(argumento)
 	print ("--------------------------------------------")
 	print ("Navio Selecionado: "..argumento)
 	print ("--------------------------------------------")
 end
-
 -----------------------------------------JOGO------------------------------------------
 local posicaoX, posicaoY
 local navioEscolhido
@@ -108,11 +144,15 @@ repeat
 	print ("  Navio     	|Tamanho")
 	print ("________________________")
 
+	jogador1.quantidadeNavios = 0
 	for k, v in pairs(jogador1.naviosDoJogador) do
 		if(v.tamanho ~= 0) then
+			jogador1.quantidadeNavios = jogador1.quantidadeNavios + 1
 			print (k, "|"..v.tamanho)
 		end
 	end
+	if(jogador1.quantidadeNavios == 0) then break end
+
 ------------------------------SELECIONA O NAVIO ---------------------------------
 	print("\nSelecione o tamanho do navio para inserir\n"
 		.."0 Para sair")
@@ -127,25 +167,21 @@ repeat
 			mostrarNavioSelecionado(k)
 		end
 	end
-
-	
-
 ---------------------------------------------------------------------------------
 
-	print ("\nSelecione a posicao em X: 1 - 10")
+	print ("\nSelecione a Linha: 1 - 10")
 	posicaoX = io.read("*n")
 
-	print ("\nSelecione a posicao em Y: 1 - 10")
+	print ("\nSelecione a Coluna: 1 - 10")
 	posicaoY = io.read("*n")
 
 	print ("\nSelecione a orientacao do navio: 1 = vertical, 2 = horizontal")
 	orientacaoDoNavio = io.read("*n")
 
-	inseriuNavio = inserirNavio	
-	(jogador1, posicaoX, posicaoY, navioEscolhido, orientacaoDoNavio)
-
-	if (inseriuNavio) then
-		print("Navio ja adicionado")
+	if(podeInserir(jogador1.mapa, posicaoX, posicaoY, navioEscolhido, orientacaoDoNavio) == true) then 
+		jogador1.mapa = inserirNavio (jogador1, posicaoX, posicaoY, navioEscolhido, orientacaoDoNavio)
 	end
 
-until (navioEscolhido == 0)
+until (navioEscolhido == 0 or jogador1.quantidadeNavios == 0)
+
+-----------------------------------Tiros-----------------------------------------
