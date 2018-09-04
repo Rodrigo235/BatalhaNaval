@@ -133,15 +133,12 @@ function inserirNavio(argJogador, argLinha, argColuna, argNavio, argOrientacao)
 
 end
 
-function ganhou(argJogadorDaVez)
+function ganhar(argJogadorDaVez)
 	local naviosPadroes = gerarNavios()
 	local somatorio = 0
 	for k, v in pairs(naviosPadroes) do
 		somatorio = somatorio + v.tamanho
 	end
-
-	print("Somatorio: " ..somatorio)
-	print("Pontuacao: " ..argJogadorDaVez.pontuacao)
 
 	if(argJogadorDaVez.pontuacao == somatorio) then
 		return true
@@ -149,15 +146,15 @@ function ganhou(argJogadorDaVez)
 		return false
 	end
 end
-
+----------------------------------------------------------------------------------------
 function acertar(argJogadorAtirador, argJogadorAlvo, argLinha, argColuna)
 	local aux = argJogadorAlvo.mapa[argLinha][argColuna]
-	argJogadorAtirador.mapaDoAdversario[argLinha][argColuna] = aux
-	if(argJogadorAlvo.mapa[argLinha][argColuna] ~= 0) then
+	if (aux ~= "X") then
+		argJogadorAtirador.mapaDoAdversario[argLinha][argColuna] = aux
+	end
+	if(aux ~= 0 and aux ~= "X") then
 		argJogadorAlvo.mapa[argLinha][argColuna] = "X"
-		print("Pontuacao do acertar: " ..argJogadorAtirador.pontuacao)
 		argJogadorAtirador.pontuacao = argJogadorAtirador.pontuacao + 1
-		print("Pontuacao do acertar: " ..argJogadorAtirador.pontuacao)
 		return true
 	else 
 		return false
@@ -228,7 +225,7 @@ vezInserirNavio(jogador2)
 -----------------------------------Tiros-----------------------------------------
 local jogadorDaVez = jogador1
 local jogadorOponente = jogador2
-local acertou
+local acertou, ganhou
 print ("----------------------------------------------------------------------")
 print ("QUE COMECE A TROCACAO")
 print ("----------------------------------------------------------------------")
@@ -244,7 +241,8 @@ repeat
 
 		if(acertar(jogadorDaVez, jogadorOponente, posicaoX, posicaoY) == true) then
 			acertou = true
-			if(ganhou(jogadorDaVez) == true) then
+			if(ganhar(jogadorDaVez) == true) then
+				ganhou = true
 				break
 			end
 		else
@@ -257,5 +255,5 @@ repeat
 
 	until(acertou == false)
 
-until(ganhou(jogadorDaVez) == true)
-	print("Vencedor: " ..jogadorDaVez.nome)
+until(ganhou == true)
+print("Vencedor: " ..jogadorDaVez.nome.. "\nPontuacao: " ..jogadorDaVez.pontuacao * 10)
