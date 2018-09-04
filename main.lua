@@ -1,21 +1,18 @@
-local tabuleiro = {
-	{},
-	{},
-	{},
-	{},
-	{},
-	{},
-	{},
-	{},
-	{},
-	{}
-}
+----------------------Construir Tabuleiro---------------------------
+function constroiTabuleiro(preenchimento)
 
-
-
-function tabuleiro:constroiTabuleiro(preenchimento)
-
-	local tabuleiroCriado = tabuleiro
+	local tabuleiroCriado = {
+		{},
+		{},
+		{},
+		{},
+		{},
+		{},
+		{},
+		{},
+		{},
+		{}
+	}
 
 	for i = 1, 10 do
 	
@@ -29,23 +26,38 @@ function tabuleiro:constroiTabuleiro(preenchimento)
 	return tabuleiroCriado
 
 end
+---------------------------------------------------------------------------
+-------------------------------Gerar Navios--------------------------------
+function gerarNavios()
+	local navios = {
+		Rebocador = {tamanho = 2, orientacao = {"vertical", "horizontal"}},
+		Contratorpedo = {tamanho = 3, orientacao = {"vertical", "horizontal"}},
+		Cruzador = {tamanho = 4, orientacao = {"vertical", "horizontal"}},
+		PortaAvioes = {tamanho = 5, orientacao = {"vertical", "horizontal"}}
+	}
 
-local navios = {
-	Rebocador = {tamanho = 2, orientacao = {"vertical", "horizontal"}},
-	Contratorpedo = {tamanho = 3, orientacao = {"vertical", "horizontal"}},
-	Cruzador = {tamanho = 4, orientacao = {"vertical", "horizontal"}},
-	PortaAvioes = {tamanho = 5, orientacao = {"vertical", "horizontal"}}
-}
+	return navios
+
+end
+
 
 local jogador1 = {
 	nome = "Player 1",
-	mapa = tabuleiro:constroiTabuleiro(0),
-	--mapaDoAdversario = tabuleiro:constroiTabuleiro("?"),
+	mapa = constroiTabuleiro(0),
+	mapaDoAdversario = constroiTabuleiro("?"),
 	pontuacao = 0,
-	naviosDoJogador = navios
+	naviosDoJogador = gerarNavios()
 }
 
-function tabuleiro:toString(argTabuleiro)
+local jogador2 = {
+	nome = "Player 2",
+	mapa = constroiTabuleiro(0),
+	mapaDoAdversario = constroiTabuleiro("?"),
+	pontuacao = 0,
+	naviosDoJogador = gerarNavios()
+}
+
+function toString(argTabuleiro)
 	local strTabuleiro = ""
 	local tabuleiro = argTabuleiro
 	
@@ -56,6 +68,17 @@ function tabuleiro:toString(argTabuleiro)
 		strTabuleiro = strTabuleiro .."\n"
 	end
 	return strTabuleiro
+end
+
+function quantidadeDeNavios(argJogador)
+	argJogador.quantidadeNavios = 0
+	for k, v in pairs(argJogador.naviosDoJogador) do
+		if(v.tamanho ~= 0) then
+			argJogador.quantidadeNavios = argJogador.quantidadeNavios + 1
+			print (k, "|"..v.tamanho)
+		end
+	end
+	return argJogador.quantidadeNavios
 end
 
 function podeInserir(argMapa, argLinha, argColuna, argNavio, argOrientacao)
@@ -110,78 +133,129 @@ function inserirNavio(argJogador, argLinha, argColuna, argNavio, argOrientacao)
 
 end
 
-function acertar(argMapaDoAdversario, argLinha, argColuna)
-	if(argMapaDoAdversario[argLinha][argColuna] ~= 0) then
+function ganhou(argJogadorDaVez)
+	local naviosPadroes = gerarNavios()
+	local somatorio = 0
+	for k, v in pairs(naviosPadroes) do
+		somatorio = somatorio + v.tamanho
+	end
+
+	print("Somatorio: " ..somatorio)
+	print("Pontuacao: " ..argJogadorDaVez.pontuacao)
+
+	if(argJogadorDaVez.pontuacao == somatorio) then
 		return true
-	else 
-		retturn false
+	else
+		return false
 	end
 end
 
-function atirar(argMapaDoAdversario, argLinha, argColuna)
-	argMapaDoAdversario[argLinha][argColuna] = "X"
+function acertar(argJogadorAtirador, argJogadorAlvo, argLinha, argColuna)
+	local aux = argJogadorAlvo.mapa[argLinha][argColuna]
+	argJogadorAtirador.mapaDoAdversario[argLinha][argColuna] = aux
+	if(argJogadorAlvo.mapa[argLinha][argColuna] ~= 0) then
+		argJogadorAlvo.mapa[argLinha][argColuna] = "X"
+		print("Pontuacao do acertar: " ..argJogadorAtirador.pontuacao)
+		argJogadorAtirador.pontuacao = argJogadorAtirador.pontuacao + 1
+		print("Pontuacao do acertar: " ..argJogadorAtirador.pontuacao)
+		return true
+	else 
+		return false
+	end
 end
 
-
--------------------------------------------------------------------------------------
 function mostrarNavioSelecionado(argumento)
 	print ("--------------------------------------------")
 	print ("Navio Selecionado: "..argumento)
 	print ("--------------------------------------------")
 end
------------------------------------------JOGO------------------------------------------
+-------------------------------------------------------------------------------------
+function vezInserirNavio(argJogador)
+	repeat
+
+		print ("Mapa do Jogador: " ..argJogador.nome.."\n")
+		print (toString(argJogador.mapa))
+		print ("Navios Disponiveis\n")
+
+		print ("  Navio     	|Tamanho")
+		print ("________________________")
+
+		if(quantidadeDeNavios(argJogador) == 0) then break end
+
+	------------------------------SELECIONA O NAVIO ---------------------------------
+		print("\nSelecione o tamanho do navio para inserir\n"
+			.."0 Para sair")
+		navioEscolhido = io.read("*n")
+
+		if navioEscolhido == 0 then break end
+
+		for k, v in pairs(argJogador.naviosDoJogador) do
+
+			if(navioEscolhido == v.tamanho) then
+				navioEscolhido = v
+				mostrarNavioSelecionado(k)
+			end
+		end
+	---------------------------------------------------------------------------------
+
+		print ("\nSelecione a Linha: 1 - 10")
+		posicaoX = io.read("*n")
+
+		print ("\nSelecione a Coluna: 1 - 10")
+		posicaoY = io.read("*n")
+
+		print ("\nSelecione a orientacao do navio: 1 = vertical, 2 = horizontal")
+		orientacaoDoNavio = io.read("*n")
+
+		if(podeInserir(argJogador.mapa, posicaoX, posicaoY, navioEscolhido, orientacaoDoNavio) == true) then 
+			argJogador.mapa = inserirNavio (argJogador, posicaoX, posicaoY, navioEscolhido, orientacaoDoNavio)
+		end
+	until (navioEscolhido == 0 or argJogador.quantidadeNavios == 0)
+end
+
+function trocaVez(argJogadorDaVez, argJogadorOponente)
+	return argJogadorOponente, argJogadorDaVez
+end
+-----------------------------------------JOGO----------------------------------------
 local posicaoX, posicaoY
 local navioEscolhido
 local orientacaoDoNavio
 local inseriuNavio
+-----------------------------inserção Navio Jogador 1--------------------------------
+vezInserirNavio(jogador1)
+-------------------------------insersao jogador 2--------------------------------
+vezInserirNavio(jogador2)
+-----------------------------------Tiros-----------------------------------------
+local jogadorDaVez = jogador1
+local jogadorOponente = jogador2
+local acertou
+print ("----------------------------------------------------------------------")
+print ("QUE COMECE A TROCACAO")
+print ("----------------------------------------------------------------------")
 
 repeat
+	print ("Vez do Jogador: " .. jogadorDaVez.nome)
+	repeat
+		print ("\nSelecione a Linha: 1 - 10")
+		posicaoX = io.read("*n")
 
-	print ("Mapa do Jogador: " ..jogador1.nome.."\n")
-	print (tabuleiro:toString(jogador1.mapa))
-	print ("Navios Disponiveis\n")
+		print ("\nSelecione a Coluna: 1 - 10")
+		posicaoY = io.read("*n")
 
-	print ("  Navio     	|Tamanho")
-	print ("________________________")
-
-	jogador1.quantidadeNavios = 0
-	for k, v in pairs(jogador1.naviosDoJogador) do
-		if(v.tamanho ~= 0) then
-			jogador1.quantidadeNavios = jogador1.quantidadeNavios + 1
-			print (k, "|"..v.tamanho)
+		if(acertar(jogadorDaVez, jogadorOponente, posicaoX, posicaoY) == true) then
+			acertou = true
+			if(ganhou(jogadorDaVez) == true) then
+				break
+			end
+		else
+			jogadorDaVez, jogadorOponente = trocaVez(jogadorDaVez, jogadorOponente)
+			acertou = false
 		end
-	end
-	if(jogador1.quantidadeNavios == 0) then break end
 
-------------------------------SELECIONA O NAVIO ---------------------------------
-	print("\nSelecione o tamanho do navio para inserir\n"
-		.."0 Para sair")
-	navioEscolhido = io.read("*n")
+		print ("Mapa da Visao: ")
+		print (toString(jogadorDaVez.mapaDoAdversario))
 
-	if navioEscolhido == 0 then break end
+	until(acertou == false)
 
-	for k, v in pairs(jogador1.naviosDoJogador) do
-
-		if(navioEscolhido == v.tamanho) then
-			navioEscolhido = v
-			mostrarNavioSelecionado(k)
-		end
-	end
----------------------------------------------------------------------------------
-
-	print ("\nSelecione a Linha: 1 - 10")
-	posicaoX = io.read("*n")
-
-	print ("\nSelecione a Coluna: 1 - 10")
-	posicaoY = io.read("*n")
-
-	print ("\nSelecione a orientacao do navio: 1 = vertical, 2 = horizontal")
-	orientacaoDoNavio = io.read("*n")
-
-	if(podeInserir(jogador1.mapa, posicaoX, posicaoY, navioEscolhido, orientacaoDoNavio) == true) then 
-		jogador1.mapa = inserirNavio (jogador1, posicaoX, posicaoY, navioEscolhido, orientacaoDoNavio)
-	end
-
-until (navioEscolhido == 0 or jogador1.quantidadeNavios == 0)
-
------------------------------------Tiros-----------------------------------------
+until(ganhou(jogadorDaVez) == true)
+	print("Vencedor: " ..jogadorDaVez.nome)
